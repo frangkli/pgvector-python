@@ -19,10 +19,16 @@ class VectorField(Field):
         return from_db(value)
 
     def _distance(self, op, vector):
-        return Expression(lhs=self, op=op, rhs=self.to_value(vector))
+        return Expression(lhs=self, op=op, rhs=self.to_value(vector).cast("vector[]"))
 
     def l2_distance(self, vector):
         return self._distance('<->', vector)
+
+    def l2_distance_multi(self, vector):
+        return self._distance('<->', vector)
+
+    def mahalanobis_distance(self, vector):
+        return self._distance('<!>', vector)
 
     def max_inner_product(self, vector):
         return self._distance('<#>', vector)

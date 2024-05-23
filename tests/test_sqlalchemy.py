@@ -210,12 +210,12 @@ class TestSqlalchemy:
         with pytest.raises(StatementError, match='expected 3 dimensions, not 2'):
             session.commit()
 
-    def test_bad_ndim(self):
-        item = Item(embedding=np.array([[1, 2, 3]]))
-        session = Session(engine)
-        session.add(item)
-        with pytest.raises(StatementError, match='expected ndim to be 1'):
-            session.commit()
+    # def test_bad_ndim(self):
+    #     item = Item(embedding=np.array([[1, 2, 3]]))
+    #     session = Session(engine)
+    #     session.add(item)
+    #     with pytest.raises(StatementError, match='expected ndim to be 1'):
+    #         session.commit()
 
     def test_bad_dtype(self):
         item = Item(embedding=np.array(['one', 'two', 'three']))

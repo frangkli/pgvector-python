@@ -23,6 +23,9 @@ def to_db(value, dim=None):
         return value
 
     if isinstance(value, np.ndarray):
+        if value.ndim == 2:
+            return '{' + ','.join(['\"' + to_db(v, dim) + '\"' for v in value]) + '}'
+
         if value.ndim != 1:
             raise ValueError('expected ndim to be 1')
 

@@ -22,6 +22,16 @@ db.execute_sql('CREATE EXTENSION IF NOT EXISTS vector')
 db.drop_tables([Item])
 db.create_tables([Item])
 
+class Item2(BaseModel):
+    embedding = VectorField(dimensions=2)
+
+
+Item2.add_index('embedding vector_l2_ops', using='hnsw')
+
+db.drop_tables([Item2])
+db.create_tables([Item2])
+
+
 
 def create_items():
     vectors = [
@@ -49,6 +59,31 @@ class TestPeewee:
         items = Item.select(Item.id, distance.alias('distance')).order_by(distance).limit(5)
         assert [v.id for v in items] == [1, 3, 2]
         assert [v.distance for v in items] == [0, 1, sqrt(3)]
+
+    def test_mahalanobis_distance(self):
+        query_vectors = np.array([
+            [2, 0],
+            [-2, 0],
+            [0, 8]
+        ])
+        mean = np.mean(query_vectors, axis=0)
+
+        vectors = [
+            mean,
+            mean + [2.1, 0],
+            mean + [0, 2.2]
+        ]
+        for i, v in enumerate(vectors):
+            Item2.create(id=i + 1, embedding=v)
+
+        print(np.cov(query_vectors, rowvar=False))
+        matrix = np.linalg.inv(np.cov(query_vectors, rowvar=False))
+
+        mahal = Item2.embedding.mahalanobis_distance(matrix)
+        items = Item2.select(Item2.id, mahal.alias('distance')).order_by(mahal).limit(5)
+        assert [v.id for v in items] == [1, 3, 2]
+        print([v.distance for v in items])
+        assert [v.distance for v in items] == [6.0, 12.0, 18.0]
 
     def test_max_inner_product(self):
         create_items()
